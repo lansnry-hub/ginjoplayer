@@ -7,6 +7,7 @@
     <style>
         :root { --ink: #dbe6df; --muted: #93a49a; --paper: #0d1715; --card: #13231f; --accent: #b99343; --accent-bright: #d6b765; --line: #2f5148; --custom-image: none; }
         * { box-sizing: border-box; }
+        html { scroll-behavior: smooth; scroll-padding-top: 24px; }
         body { margin: 0; min-height: 100vh; color: var(--ink); font-family: "Avenir Next", "Hiragino Kaku Gothic ProN", sans-serif; background: radial-gradient(circle at 75% 0%, #1e3a32 0, transparent 34%), var(--paper); }
         body::before { content: "🍸   ✦"; position: fixed; top: 18px; right: 5vw; z-index: -1; color: rgba(214,183,101,.14); font-size: 90px; letter-spacing: 20px; pointer-events: none; }
         .page-shell { width: min(1120px, calc(100% - 40px)); margin: 0 auto; padding: 30px 0 60px; }
@@ -17,7 +18,7 @@
         .eyebrow { margin: 0 0 8px; color: var(--accent); font-size: 12px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; }
         h1 { margin: 0; color: #edf3ee; font-family: Georgia, "Times New Roman", serif; font-size: clamp(34px, 5vw, 62px); font-weight: 400; letter-spacing: -.04em; line-height: calc(.95em + 3px); text-shadow: 0 2px 20px rgba(0,0,0,.4); }
         .brand-note { width: 280px; max-width: 100%; height: 88px; margin: 0; color: var(--muted); display: flex; flex-direction: column; justify-content: flex-end; align-items: flex-end; font-size: 13px; line-height: 1.7; text-align: right; }
-        .player-card { overflow: hidden; padding: 22px; border: 1px solid var(--line); border-radius: 18px; background: linear-gradient(145deg, rgba(24,48,41,.96), rgba(10,22,19,.96)); box-shadow: 0 18px 45px rgba(0,0,0,.28), inset 0 1px rgba(214,183,101,.18); }
+        .player-card { scroll-margin-top: 24px; margin-bottom: 18px; overflow: hidden; padding: 22px; border: 1px solid var(--line); border-radius: 18px; background: linear-gradient(145deg, rgba(24,48,41,.96), rgba(10,22,19,.96)); box-shadow: 0 18px 45px rgba(0,0,0,.28), inset 0 1px rgba(214,183,101,.18); }
         .art-strip { min-height: 104px; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 18px 22px; color: white; background: linear-gradient(105deg, rgba(9,24,20,.96), rgba(42,73,59,.9)), var(--custom-image); background-size: cover; background-position: center; border: 1px solid rgba(214,183,101,.3); border-radius: 11px; }
         .art-strip strong { display: block; margin: 3px 0 5px; overflow: hidden; font-family: Georgia, "Times New Roman", serif; font-size: 29px; font-weight: 400; text-overflow: ellipsis; white-space: nowrap; }
         .art-strip small { color: rgba(255,255,255,.7); font-size: 11px; letter-spacing: .14em; text-transform: uppercase; }
@@ -39,8 +40,10 @@
         .library-heading p span { display: block; }
         .controls { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
         input, select { min-height: 42px; padding: 8px 12px; color: var(--ink); border: 1px solid var(--line); border-radius: 7px; background: rgba(17,38,32,.9); font: inherit; }
-        .favorites-toggle { min-height: 42px; padding: 8px 14px; color: var(--accent-bright); border: 1px solid var(--accent); border-radius: 7px; background: transparent; cursor: pointer; font: inherit; }
-        .favorites-toggle.is-active { color: #17211d; background: var(--accent-bright); }
+        .favorites-toggle, .playback-toggle { min-height: 42px; padding: 8px 14px; color: var(--accent-bright); border: 1px solid var(--accent); border-radius: 7px; background: transparent; cursor: pointer; font: inherit; transition: transform .18s ease, box-shadow .18s ease, background .18s ease, color .18s ease; }
+        .favorites-toggle:hover, .playback-toggle:hover { color: #17211d; background: rgba(214,183,101,.18); transform: translateY(-1px); }
+        .favorites-toggle.is-active, .playback-toggle.is-active { color: #17211d; background: var(--accent-bright); box-shadow: 0 8px 18px rgba(214,183,101,.18); }
+        .playback-toggle-group { display: flex; justify-content: center; gap: 8px; margin: 0 auto 0; flex-wrap: wrap; width: 100%; }
         #searchInput { flex: 1 1 240px; }
         .song-list { display: flex; flex-direction: column; gap: 8px; margin-top: 18px; }
         .song-item { padding: 12px; border: 1px solid transparent; border-radius: 10px; background: rgba(19,35,31,.76); cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 12px; transition: .2s ease; }
@@ -63,7 +66,6 @@
     width: calc(100% - 24px);
     padding: 16px 0 40px;
   }
-@media (max-width: 640px) {
   /* 1. 调整背景 🍸 ✦ 图标在手机端的大小和透明度 */
   body::before {
     font-size: 48px;            /* 手机端缩小图标尺寸，防止过于抢眼或撑开页面 */
@@ -72,7 +74,6 @@
     letter-spacing: 10px;       /* 缩小字间距 */
     color: rgba(214,183,101,0.18); /* 保留半透明效果（0.18 约等于 18% 不透明度） */
   }
-}
   /* 2. 标头布局与字体微调 */
   .masthead {
     flex-direction: column;
@@ -236,6 +237,10 @@
 </div>
     <div id="playerMessage" role="alert"></div>
   </section>
+  <div class="playback-toggle-group" aria-label="播放模式">
+    <button type="button" class="playback-toggle is-active" data-playback-mode="order">順番に再生</button>
+    <button type="button" class="playback-toggle" data-playback-mode="shuffle">シャッフル</button>
+  </div>
   <section aria-label="曲库" data-i18n-attr="aria-label:libraryLabel"><div class="library-heading"><h2 data-i18n="trackLibrary">Track library</h2><p><span data-i18n="browseText">カテゴリから探す、曲名をタップして再生</span></p></div><div class="controls"><input type="text" id="searchInput" data-i18n-attr="placeholder:searchPlaceholder" placeholder="曲名や歌手名で検索..."><select id="categorySelect"><option value="ALL" data-i18n="allCategories">すべての大区分</option><option value="邦楽" data-i18n="japanese">邦楽</option><option value="洋楽" data-i18n="international">洋楽</option></select><select id="subCategorySelect"><option value="ALL" data-i18n="allSubcategories">すべての小区分</option></select><button id="favoritesToggle" class="favorites-toggle" type="button">♡ Favorites</button></div><div id="songList" class="song-list"></div></section>
 </main>
 
@@ -262,7 +267,7 @@
         { id: 'zyngx4g-sy4', title: 'モア！ジャンプ！モア！', originalArtist: 'ナユタン星人', singer: 'Zeal ginjoka', startTime:1016 , endTime:1200 , category: '邦楽', subCategory: 'ボカロ' },
         { id: 'zyngx4g-sy4', title: '地球最後の告白を', originalArtist: 'kemu', singer: 'Kaelix Debonair & Zeal ginjoka', startTime:1670 , endTime:1939 , category: '邦楽', subCategory: 'ボカロ' },
         { id: 'zyngx4g-sy4', title: 'drop pop candy', originalArtist: 'れをる', singer: 'Kaelix Debonair & Zeal ginjoka', startTime:2180 , endTime:2405 , category: '邦楽', subCategory: 'ボカロ' },
-        { id: 'zyngx4g-sy4', title: 'ハッピーシンセサイザ', originalArtist: 'EasyPop', singer: 'Claude Clawmark & Zeal ginjoka', startTime:2835 , endTime:3065 , category: '邦楽', subCategory: 'ボカロ' },
+        { id: 'zyngx4g-sy4', title: 'ハッピーシンセサイゼ', originalArtist: 'EasyPop', singer: 'Claude Clawmark & Zeal ginjoka', startTime:2835 , endTime:3065 , category: '邦楽', subCategory: 'ボカロ' },
         { id: 'zyngx4g-sy4', title: 'カンタレラ', originalArtist: '黒うさ', singer: 'Kaelix Debonair & Zeal ginjoka', startTime:3738 , endTime:3915 , category: '邦楽', subCategory: 'ボカロ' },
         { id: 'zyngx4g-sy4', title: 'プラスティック・ラブ', originalArtist: '竹内まりや', singer: 'Claude Clawmark & Kaelix Debonair & Zeal ginjoka', startTime:4052 , endTime:4341 , category: '邦楽', subCategory: 'J-POP' },
         { id: '5TAIqQ7hHTY', title: '真夜中のドア〜stay with me〜', originalArtist: '松原みき', singer: 'Shu Yamino & Uki Violeta & Claude Clawmark & Zeal ginjoka', startTime:321 , endTime:593 , category: '邦楽', subCategory: 'J-POP' },
@@ -293,9 +298,16 @@
         { id: 'jNKzhWOvN0E', title: 'Molotov Mocktail', originalArtist: 'Zeal ginjoka', singer: 'Zeal ginjoka',startTime:692 , endTime:908 ,category: '洋楽', subCategory: 'ORIGINAL' },
         { id: 'YoSGhzh7Xjc', title: 'Medusa\'s Masquerade', originalArtist: 'Zeal ginjoka', singer: 'Seible & Zeal ginjoka',startTime:230 , endTime:366 ,category: '洋楽', subCategory: 'ORIGINAL' },
         { id: 'YoSGhzh7Xjc', title: 'Satellite', originalArtist: 'BY THE BEAT', singer: 'BY THE BEAT',startTime:1680 , endTime:1847 ,category: '邦楽', subCategory: 'J-POP' },
-        { id: 'Bfylq35-_fY', title: 'デスぺレート', originalArtist: 'TeddyLoid & Giga', singer: 'Hazumi Aileen & Zeal Ginjoka',startTime:7893 , endTime:8061 ,category: '邦楽', subCategory: 'J-POP' },
+        { id: 'Bfylq35-_fY', title: 'デスぺレート', originalArtist: 'TeddyLoid & Giga', singer: 'Hazumi Aileen & Zeal Ginjoka',startTime:7893 , endTime:8061 ,category: '邦楽', subCategory: 'ボカロ' },
         { id: 'i5EzWVKOolE', title: 'WAVE', originalArtist: 'niki feat.Lily ', singer: 'Ruvii Redcore & Zeal Ginjoka',startTime:1402 , endTime:1595 ,category: '邦楽', subCategory: 'ボカロ' },
-        { id: 'pNH1a4oyH9o', title: 'インザバックルーム', originalArtist: 'syudou ', singer: 'Sansha safaia & Ruvii Redcore & Elaine Duvelle & Zeal Ginjoka',startTime:2097 , endTime:2307 ,category: '邦楽', subCategory: 'アニメソング' }
+      　 { id: 'pNH1a4oyH9o', title: 'インザバックルーム', originalArtist: 'syudou', singer: 'Sansha safaia & Ruvii Redcore & Elaine Duvelle & Zeal Ginjoka',startTime:2097 , endTime:2307 ,category: '邦楽', subCategory: 'アニメソング' },
+        { id: 'iTtAGiAibPo', title: 'LOUDER', originalArtist: 'Roselia', singer: 'Zeal Ginjoka',startTime:1085 , endTime:1294 ,category: '邦楽', subCategory: 'アニメソング' },
+        { id: 'iTtAGiAibPo', title: 'ダブルラリアット', originalArtist: 'アゴアニキ', singer: 'Vezalius Bandage & Zeal Ginjoka',startTime:2090 , endTime:2294 ,category: '邦楽', subCategory: 'ボカロ' },
+        { id: 'iTtAGiAibPo', title: 'リミッター', originalArtist: 'niki', singer: 'Zeal Ginjoka',startTime:3577 , endTime:3784 ,category: '邦楽', subCategory: 'ボカロ' },
+        { id: 'iTtAGiAibPo', title: 'Leia', originalArtist: 'ゆよゆっぺ', singer: 'Kaelix Debonair & Zeal Ginjoka',startTime:3618 , endTime:4623 ,category: '邦楽', subCategory: 'ボカロ' },
+        { id: 'iTtAGiAibPo', title: 'ジッタードール', originalArtist: 'niki', singer: 'Zeal Ginjoka',startTime:5945, endTime:6173 ,category: '邦楽', subCategory: 'ボカロ' },
+        { id: 'iTtAGiAibPo', title: 'ハッピーシンセサイザ', originalArtist: 'EasyPop', singer: 'Uki Violeta & Vezalius Bandage & Kaelix Debonair & Zeal Ginjoka',startTime:7235 , endTime:7465 ,category: '邦楽', subCategory: 'ボカロ' },
+        { id: 'iTtAGiAibPo', title: 'GO!!!', originalArtist: 'FLOW', singer: 'Vezalius Bandage & Uki Violeta & Kaelix Debonair & Zeal Ginjoka',startTime:4921 , endTime:5158 ,category: '邦楽', subCategory: 'J-POP' },
       ];
 
 
@@ -313,6 +325,7 @@
           pageTitle: 'Ginjoplayer | Music Room', playerLabel: 'プレーヤー', libraryLabel: '曲一覧', nowPlaying: 'Now playing', trackLibrary: '曲一覧',
           browseText: 'カテゴリから探す、曲名をタップして再生',
           searchPlaceholder: '曲名や歌手名で検索...', allCategories: 'すべての大区分', japanese: '邦楽', international: '洋楽', allSubcategories: 'すべての小区分',
+          playbackModeLabel: '再生モード', playbackOrder: '順番に再生', playbackShuffle: 'シャッフル', playbackRepeatOne: '1曲リピート', playbackRepeatAll: 'リストをリピート',
           favorites: 'お気に入り', allStyles: 'すべての小区分', original: '原曲', cover: '歌唱', originalLabel: '原曲', coverLabel: '歌唱', originalMeta: '原曲', coverMeta: '歌唱', thumbnailSuffix: 'のサムネイル',
           back: '10秒戻る', play: '再生', pause: '一時停止', forward: '10秒進む', openVideo: '元動画', addFavorite: 'お気に入りに追加', removeFavorite: 'お気に入りから削除',
           chooseTrack: '曲を選択してください', loading: '播放器正在加载，请稍候再按一次播放。', chooseFirst: '曲を選択してください', invalidId: '動画IDが正しくありません。',
@@ -325,6 +338,7 @@
           pageTitle: 'Ginjoplayer | 音乐空间', playerLabel: '播放器', libraryLabel: '曲库', nowPlaying: '正在播放', trackLibrary: '曲目库',
           browseText: '按类别浏览，点击曲目开始播放',
           searchPlaceholder: '按曲名或歌手搜索...', allCategories: '全部大分类', japanese: '日文曲', international: '英文曲', allSubcategories: '全部小分类',
+          playbackModeLabel: '播放模式', playbackOrder: '顺序播放', playbackShuffle: '随机播放', playbackRepeatOne: '单曲循环', playbackRepeatAll: '列表循环',
           favorites: '收藏', allStyles: '全部小分类', original: '原曲', cover: '演唱', originalLabel: '原曲', coverLabel: '演唱', originalMeta: '原曲', coverMeta: '演唱', thumbnailSuffix: '缩略图',
           back: '后退 10 秒', play: '播放', pause: '暂停', forward: '前进 10 秒', openVideo: '打开原视频', addFavorite: '加入收藏', removeFavorite: '取消收藏',
           chooseTrack: '请选择曲目', loading: '播放器正在加载，请稍候再按一次播放。', chooseFirst: '请先选择曲目', invalidId: '视频 ID 无效。',
@@ -336,6 +350,7 @@
           pageTitle: 'Ginjoplayer | Music Room', playerLabel: 'Music player', libraryLabel: 'Track library', nowPlaying: 'Now playing', trackLibrary: 'Track library',
           browseText: 'Browse by Category. Tap to Play.',
           searchPlaceholder: 'Search by title or artist...', allCategories: 'All categories', japanese: 'Japanese Song', international: 'English Song', allSubcategories: 'All styles',
+          playbackModeLabel: 'Playback mode', playbackOrder: 'In order', playbackShuffle: 'Shuffle', playbackRepeatOne: 'Repeat one', playbackRepeatAll: 'Repeat all',
           favorites: 'Favorites', allStyles: 'All styles', original: 'Original', cover: 'Sing', originalLabel: 'Original', coverLabel: 'Sing',
           back: 'Back 10 seconds', play: 'Play', pause: 'Pause', forward: 'Forward 10 seconds', openVideo: 'Open source video', addFavorite: 'Add to favorites', removeFavorite: 'Remove from favorites',
           chooseTrack: 'Choose a track', loading: 'The player is loading. Please try again shortly.', chooseFirst: 'Please choose a track first.', invalidId: 'The video ID is invalid.',
@@ -373,6 +388,7 @@
         updateLanguageControls();
         updatePauseButton();
         updateFavoritesButton();
+        updatePlaybackModeButtons();
         populateSubCategories();
         renderCurrentSongs();
         if (selectedSong) updateNowPlaying(selectedSong);
@@ -401,6 +417,8 @@
       var pendingSong = null;
       var selectedSong = null;
       var playbackTimer;
+      var playbackMode = 'order';
+      var advancingTrack = false;
       var favoritesOnly = false;
       var favoriteKeys = new Set(JSON.parse(localStorage.getItem('ginjoplayer-favorites') || '[]'));
       function onYouTubeIframeAPIReady() {
@@ -408,12 +426,17 @@
           height: '100%',
           width: '100%',
           playerVars: { rel: 0 },
-          events: { onReady: onPlayerReady, onError: showPlayerError }
+          events: { onReady: onPlayerReady, onError: showPlayerError, onStateChange: onPlayerStateChange }
         });
       }
 
       function onPlayerReady() {
         playerReady = true;
+      }
+
+      function onPlayerStateChange(event) {
+        if (event.data === YT.PlayerState.PLAYING) advancingTrack = false;
+        if (event.data === YT.PlayerState.ENDED) advanceSong();
       }
 
       // 4. 曲再生の処理
@@ -460,6 +483,10 @@
         pendingSong = song;
         updateNowPlaying(song);
         renderCurrentSongs();
+        const playerCard = document.querySelector('.player-card');
+        if (playerCard) {
+          playerCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
         document.getElementById('playerMessage').textContent = '';
         if (!/^[A-Za-z0-9_-]{11}$/.test(song.id)) {
           document.getElementById('playerMessage').textContent = t('invalidId');
@@ -493,7 +520,7 @@
           const endTime = getEndTime(selectedSong);
           if (player && player.getCurrentTime && endTime !== null &&
               player.getCurrentTime() >= endTime) {
-            pauseSong();
+            advanceSong();
           }
         }, 250);
       }
@@ -541,6 +568,42 @@
           player.pauseVideo();
           setPlaybackButton(false);
         }
+      }
+
+      function advanceSong() {
+        if (advancingTrack) return;
+        const queue = getFilteredSongs();
+        if (!queue.length) {
+          pauseSong();
+          return;
+        }
+
+        const currentIndex = queue.findIndex(song => selectedSong && songKey(song) === songKey(selectedSong));
+        let nextSong;
+        if (playbackMode === 'repeat-one' && selectedSong) {
+          nextSong = selectedSong;
+        } else if (playbackMode === 'shuffle') {
+          const currentKey = selectedSong ? songKey(selectedSong) : null;
+          const candidates = queue.filter(song => songKey(song) !== currentKey);
+          nextSong = candidates[Math.floor(Math.random() * candidates.length)] || queue[0];
+        } else if (currentIndex < 0) {
+          nextSong = playbackMode === 'repeat-all' ? queue[0] : null;
+        } else if (currentIndex + 1 < queue.length) {
+          nextSong = queue[currentIndex + 1];
+        } else {
+          nextSong = playbackMode === 'repeat-all' ? queue[0] : null;
+        }
+
+        if (!nextSong) {
+          pauseSong();
+          return;
+        }
+        advancingTrack = true;
+        selectedSong = nextSong;
+        pendingSong = nextSong;
+        updateNowPlaying(nextSong);
+        renderCurrentSongs();
+        loadSong(nextSong, true);
       }
 
       function seekSong(seconds) {
@@ -609,7 +672,7 @@
         });
       }
 
-      function renderCurrentSongs() {
+      function getFilteredSongs() {
         const searchText = document.getElementById('searchInput').value.toLowerCase();
         const selectedCat = document.getElementById('categorySelect').value;
         const selectedSubCat = document.getElementById('subCategorySelect').value;
@@ -621,7 +684,11 @@
           return matchesSearch && matchesCat && matchesSubCat && matchesFavorite;
         });
         filtered.sort((firstSong, secondSong) => firstSong.title.localeCompare(secondSong.title, 'ja', { sensitivity: 'base' }));
-        renderSongs(filtered);
+        return filtered;
+      }
+
+      function renderCurrentSongs() {
+        renderSongs(getFilteredSongs());
       }
 
       // 6. 検索・絞り込み処理
@@ -675,6 +742,50 @@
         renderCurrentSongs();
       });
 
+      function getPlaybackStartSong() {
+        const queue = getFilteredSongs();
+        if (!queue.length) return null;
+        if (playbackMode === 'shuffle') {
+          return queue[Math.floor(Math.random() * queue.length)];
+        }
+        return queue[0];
+      }
+
+      function applyPlaybackMode(mode, shouldPlay = true) {
+        playbackMode = mode;
+        updatePlaybackModeButtons();
+        const nextSong = getPlaybackStartSong();
+        if (!nextSong) {
+          selectedSong = null;
+          pendingSong = null;
+          pauseSong();
+          return;
+        }
+        selectedSong = nextSong;
+        pendingSong = nextSong;
+        updateNowPlaying(nextSong);
+        renderCurrentSongs();
+        loadSong(nextSong, shouldPlay);
+      }
+
+      function initializePlaybackModeControl() {
+        document.querySelectorAll('.playback-toggle').forEach(button => {
+          button.addEventListener('click', () => {
+            applyPlaybackMode(button.dataset.playbackMode, true);
+          });
+        });
+        updatePlaybackModeButtons();
+      }
+
+      function updatePlaybackModeButtons() {
+        document.querySelectorAll('.playback-toggle').forEach(button => {
+          const isActive = button.dataset.playbackMode === playbackMode;
+          button.classList.toggle('is-active', isActive);
+          button.textContent = button.dataset.playbackMode === 'order' ? t('playbackOrder') : t('playbackShuffle');
+          button.setAttribute('aria-pressed', String(isActive));
+        });
+      }
+
       function populateSubCategories() {
         const subSelect = document.getElementById('subCategorySelect');
         const allStyles = [...new Set(Object.values(subCategories).flat())];
@@ -704,6 +815,7 @@
         return category === '邦楽' ? (currentLanguage === 'zh' ? '日文曲' : 'Japanese Song') : (currentLanguage === 'zh' ? '英文曲' : 'English Song');
       }
 
+      initializePlaybackModeControl();
       populateSubCategories();
       renderCurrentSongs();
       applyLanguage('ja');
